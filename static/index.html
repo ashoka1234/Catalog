@@ -1,0 +1,327 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <!-- build:css(.) styles/vendor.css -->
+    <!-- bower:css -->
+    <!--<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" /> -->
+    <!-- endbower -->
+    <!-- endbuild -->
+    <!-- build:css(.tmp) styles/main.css -->
+    <!-- <link rel="stylesheet" href="styles/main.css"> -->
+    <!-- endbuild -->
+    <!-- jQuery library -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
+    <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.4.2.js"></script>
+
+  </head>
+  <body>
+      <div class="container">
+        <header class="row">
+          <nav class="navbar navbar-inverse">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#catelog-app-navbar-collapse" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="#">Catelog App</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="catelog-app-navbar-collapse">
+              <button type="button" class="btn btn-default navbar-btn navbar-right">Login</button>
+            </div>
+          </nav>
+        </header>
+        <div class="row">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <div class="form-group" style="margin-bottom: 0px">
+                <a class="btn btn-default" href="#" role="button">Recents</a>
+                <div class="col-xs-8 col-sm-3">
+                  <select class="form-control" data-bind="options: catalog().map(x => x.name), value: currentCategoryName"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <everything-list params="categoryName: currentCategoryName"></everything-list>
+          </div>
+        </div>
+      </div>
+
+      <!-- Templates -->
+      <template id="view-list-component-template">
+        <div class="panel-group" id="view-list-accordion" role="tablist" aria-multiselectable="true">
+            <!-- ko foreach: list() -->
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" data-bind="{attr: {'id': 'view-list-heading' + $index()}">
+                  <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#view-list-accordion"
+                       aria-expanded="false" data-bind="text: $data.name, attr: {'aria-controls': 'view-list-collapse' + $index(), 'href': '#view-list-collapse' + $index()}">
+                    </a>
+                  </h4>
+                </div>
+                <div data-bind="attr: {'id': 'view-list-collapse' + $index(), 'aria-labelledby': 'view-list-heading' + $index()}" class="panel-collapse collapse" role="tabpanel">
+                  <div class="panel-body" data-bind="text: $data.description">
+                  </div>
+                </div>
+            </div>
+            <!-- /ko -->
+        </div>
+      </template>
+
+      <template id="edit-list-component-template">
+        <div class="panel-group" id="edit-list-accordion" role="tablist" aria-multiselectable="true">
+            <!-- ko foreach: list() -->
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" data-bind="{attr: {'id': 'edit-list-heading' + $data.id}">
+                  <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#edit-list-accordion"
+                       aria-expanded="false" data-bind="text: $data.name, attr: {'aria-controls': 'edit-list-collapse' + $data.id, 'href': '#edit-list-collapse' + $data.id}">
+                    </a>
+                  </h4>
+                </div>
+                <div data-bind="attr: {'id': 'edit-list-collapse' + $data.id, 'aria-labelledby': 'edit-list-heading' + $data.id}, event: {'shown.bs.collapse': $parent.shownCollapse }" class="panel-collapse collapse" role="tabpanel">
+                  <div class="panel-body">
+                    <form action="#" data-bind="submit: function(formElement) { $parent.submitEdited(formElement, $data) }">
+                      <div class="form-group">
+                        <label for="itemDescription">Description </label>
+                        <textarea class="form-control" data-bind="attr: {'id':'itemDescript'+ $data.id}, textInputWithInit: $parent.newDiscription"></textarea>
+                      </div>
+                      <div class="form-group">
+                        <label for="itemCategory">Category </label>
+                        <select id="itemCategory" class="form-control" data-bind="foreach: $root.catalog().map(x => x.name)">
+                          <option data-bind="text: $data"></option>
+                        </select>
+                      </div>
+                      <button type="submit" class="btn btn-default">Submit</button>
+                    </form>
+                  </div>
+                </div>
+            </div>
+            <!-- /ko -->
+        </div>
+      </template>
+
+      <template id="delete-list-component-template">
+        <div class="panel panel-success">
+          <div class="panel-heading">
+            <form class="form-inline" action="#" data-bind="submit: submitDeletions">
+              <label>Click to Submit All the Deletions</label>
+              <button type="submit" class="btn btn-default btn-sm">Submit</button>
+            </form>
+          </div>
+        </div>
+        <div class="panel-group" id="delete-list-accordion" role="tablist" aria-multiselectable="true">
+            <!-- ko foreach: list() -->
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab" data-bind="{attr: {'id': 'delete-list-heading' + $index()}">
+                  <h4 class="panel-title">
+                    <input type="checkbox" data-bind="{attr: {'aria-label': 'dlc' + $index()}, checkedValue: $data.id, checked: $parent.deletedItems}">
+                    <a role="button" data-toggle="collapse" data-parent="#delete-list-accordion"
+                       aria-expanded="false" data-bind="text: $data.name, attr: {'aria-controls': 'delete-list-collapse' + $index(), 'href': '#delete-list-collapse' + $index()}">
+                    </a>
+                  </h4>
+                </div>
+                <div data-bind="attr: {'id': 'delete-list-collapse' + $index(), 'aria-labelledby': 'delete-list-heading' + $index()}" class="panel-collapse collapse" role="tabpanel">
+                  <div class="panel-body" data-bind="text: $data.description">
+                  </div>
+                </div>
+            </div>
+            <!-- /ko -->
+        </div>
+      </template>
+
+      <template id="everything-list-component-template">
+        <div>
+          <!-- Nav tabs -->
+          <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#view-list-element" aria-controls="view-list-element" role="tab" data-toggle="tab">View</a></li>
+            <li role="presentation"><a href="#edit-list-element" aria-controls="edit-list-element" role="tab" data-toggle="tab">Edit</a></li>
+            <li role="presentation"><a href="#delete-list-element" aria-controls="delete-list-element" role="tab" data-toggle="tab">Delete</a></li>
+            <li role="presentation"><a href="#add-list-element" aria-controls="add-list-element" role="tab" data-toggle="tab">Add</a></li>
+          </ul>
+          <!-- Tab panes -->
+          <div class="tab-content">
+            <div role="tabpanel" class="tab-pane active" id="view-list-element">
+              <!-- <view-list params="list: list, category: category"></view-list> -->
+              <div data-bind='component: {
+                name: "view-list",
+                params: { categoryName: categoryName }}'>
+              </div>
+            </div>
+            <div role="tabpanel" class="tab-pane fade" id="edit-list-element">
+              <edit-list params="categoryName: categoryName"></edit-list>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="delete-list-element">
+              <delete-list params="categoryName: categoryName"></delete-list>
+            </div>
+            <div role="tabpanel" class="tab-pane" id="add-list-element">
+              <span> Add an item </span>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <script>
+          function AppViewModel() {
+            self = this;
+            self.catalog = ko.observableArray([]);
+            self.currentCategoryName = ko.observable();
+            self.userid = ko.observable(['a1','a2']);
+
+            $.getJSON("/catalog.json", function(data) {
+                data.catalog.forEach(function(category) {
+                  newCategory = category;
+                  newCategory.items = ko.observableArray(category.items.map(x=> ko.observable(x)));
+                  self.catalog.push(newCategory);
+                });
+                self.currentCategoryName(self.catalog()[0].name);
+                // Got to remove the following line
+                self.userid(self.catalog()[0].userid);
+            });
+          }
+
+          ko.components.register('view-list', {
+            viewModel: function(params) {
+                // Data:
+                this.categoryName = params.categoryName;
+                // list is an observable of observableArray
+                this.list = ko.observable();
+                // Update the list whenever there is a new category selection
+                this.categoryName.subscribe(function(newCategory) {
+                  this.list(self.catalog().find(function(x) {
+                    return x.name == newCategory;
+                  }).items);
+                }, this);
+
+                this.currentItem = ko.observable(null);
+
+                // Behaviors
+                this.itemSelect = function(item) { this.currentItem(item); }.bind(this);
+            },
+            template: { element: "view-list-component-template" }
+          });
+
+          ko.components.register('edit-list', {
+            viewModel: function(params) {
+                // Data:
+                this.categoryName = params.categoryName;
+                // list is an observable of observableArray
+                this.list = ko.observable();
+                // Update the list whenever there is a new category selection
+                this.categoryName.subscribe(function(newCategory) {
+                  this.list(self.catalog().find(function(x) {
+                    return x.name == newCategory;
+                  }).items);
+                }, this);
+                // Edited Description
+                this.newDescription = ko.observable();
+                // Edited category
+                this.newCategoryName = ko.observable();
+
+                // Behaviors
+                this.shownCollapse = function (data) {
+                  // display existing description
+                  this.newDescription(data.description);
+                }.bind(this);
+
+                this.submitEdited = function(formElement, item) {
+                  // Edit end point would be /catalog/{category}/edit/{name}/description?category?
+                  $('#edit-list-collapse'+item.id).collapse('hide');
+                  $.ajax({
+                      url: "/catalog/"+this.categoryName()+"/edit/" + item.name,
+                      type: 'PUT',
+                      success: function(result) {
+                          // Do something with the result
+                      }
+                  });
+                  // $.post("/catalog/"+this.newCategoryName()+"/edit/" + item.name,
+                  //   {'description': this.newDescription(), 'category': this.newCategory }, function(returnedData) {
+                  //   // This callback is executed if the post was successful
+                  // });
+
+                  this.newDescription(null);
+                  console.log("Edited item submitted");
+                }.bind(this);
+            },
+            template: { element: "edit-list-component-template" }
+          });
+
+          ko.components.register('delete-list', {
+            viewModel: function(params) {
+                // Data:
+                this.categoryName = params.categoryName;
+                // list is an observable of observableArray
+                this.list = ko.observable();
+                // Update the list whenever there is a new category selection
+                this.categoryName.subscribe(function(newCategory) {
+                  this.list(self.catalog().find(function(x) {
+                    return x.name == newCategory;
+                  }).items);
+                }, this);
+                // deletedItems
+                this.deletedItems = ko.observableArray();
+
+                // Behaviors
+                this.submitDeletions = function(item) {
+                  // Gather checked deletions
+                  // Deletion end point would be /catalog/{category}/delete/{List of Ids}
+                  $.ajax({
+                      url: "/catalog/"+this.categoryName()+"/delete",
+                      type: 'DELETE',
+                      success: function(result) {
+                          // Do something with the result
+                      }
+                  });
+                  console.log("deletions submitted");
+                  console.log(this.deletedItems());
+                }.bind(this);
+            },
+            template: { element: "delete-list-component-template" }
+          });
+
+          ko.components.register('everything-list', {
+            viewModel: function(params) {
+                // Data:
+                this.categoryName = params.categoryName;
+
+                // Behaviors
+            },
+            template: { element: "everything-list-component-template" }
+          });
+
+          ko.bindingHandlers.textInputWithInit = {
+              init: function(element, valueAccessor, allBindingsAccessor, viewModel, bindingContext) {
+                  var property = valueAccessor();
+                  //    text = allBindingsAccessor.get('text');
+
+                  //create the observable, if it doesn't exist
+                  if (!ko.isWriteableObservable(bindingContext.$parent.newDescription)) {
+                      bindingContext.$parent.newDescription = ko.observable();
+                      console.log("strange");
+                  }
+
+                  bindingContext.$parent.newDescription(viewModel.description);
+                  console.log(bindingContext.$parent.newDescription());
+
+                  ko.applyBindingsToNode(element, { textInput: bindingContext.$parent.newDescription });
+              }
+          };
+
+          // Activates knockout.js
+          ko.applyBindings(new AppViewModel());
+      </script>
+  </body>
+</html>
